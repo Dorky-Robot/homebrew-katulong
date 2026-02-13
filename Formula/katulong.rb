@@ -8,8 +8,11 @@ class Katulong < Formula
   depends_on "node"
 
   def install
-    # Install npm dependencies
-    system "npm", "install", "--production", "--omit=dev"
+    # Install npm dependencies (skip prepare script to avoid husky dev dependency)
+    system "npm", "install", "--production", "--omit=dev", "--ignore-scripts"
+
+    # Run postinstall manually (for node-pty)
+    system "chmod", "+x", "node_modules/node-pty/prebuilds/*/spawn-helper" rescue nil
 
     # Install everything to libexec
     libexec.install Dir["*"]
