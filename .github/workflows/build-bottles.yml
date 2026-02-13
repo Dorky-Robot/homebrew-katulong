@@ -53,24 +53,28 @@ jobs:
       - name: Checkout tap
         uses: actions/checkout@v4
 
+      - name: Set up Homebrew
+        uses: Homebrew/actions/setup-homebrew@master
+
       - name: Download all bottles
         uses: actions/download-artifact@v4
         with:
           path: bottles
-          merge-multiple: true
-
-      - name: Set up Homebrew
-        uses: Homebrew/actions/setup-homebrew@master
 
       - name: Merge and publish bottles
         env:
           HOMEBREW_GITHUB_API_TOKEN: ${{ github.token }}
         run: |
-          # List downloaded files
-          ls -la bottles/
+          # List what was downloaded
+          pwd
+          ls -R bottles/ || echo "No bottles directory"
 
-          # Move bottles to current directory
-          mv bottles/*.bottle.* .
+          # Flatten bottle directory structure (artifacts create subdirs)
+          find bottles -name "*.bottle.tar.gz" -exec mv {} . \;
+          find bottles -name "*.bottle.json" -exec mv {} . \;
+
+          # List bottles in current directory
+          ls -la *.bottle.* || echo "No bottles found"
 
           # Merge bottles into formula
           brew bottle --merge --write --no-commit Formula/katulong.rb *.bottle.json
