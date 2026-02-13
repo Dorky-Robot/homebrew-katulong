@@ -39,13 +39,13 @@ brew services stop katulong
 
 ### Creating a Release
 
-1. **Update version in package.json**
+1. **Update version in package.json** (in main katulong repo)
    ```bash
    # Update version to 0.1.0
    npm version 0.1.0 --no-git-tag-version
    ```
 
-2. **Create and push git tag**
+2. **Create and push git tag** (in main katulong repo)
    ```bash
    git add package.json
    git commit -m "Release v0.1.0"
@@ -62,21 +62,62 @@ brew services stop katulong
    shasum -a 256 v0.1.0.tar.gz
    ```
 
-4. **Update formula**
+4. **Update formula** (in homebrew-katulong repo)
    - Update `url` in Formula/katulong.rb with correct version
    - Update `sha256` with computed hash
+   - Remove any old `bottle do ... end` block (will be regenerated)
    - Commit and push changes
 
-5. **Test installation**
+5. **Build bottles automatically**
+
+   Bottles are built automatically via GitHub Actions when you push to master/main:
+   - Builds for macOS ARM (Sequoia, Sonoma) and Intel (Ventura)
+   - Uploads bottles to GitHub Releases
+   - Updates formula with bottle metadata
+
+   Check the Actions tab to monitor progress: https://github.com/Dorky-Robot/homebrew-katulong/actions
+
+6. **Test installation**
    ```bash
-   # Test from local formula
-   brew install --build-from-source ./Formula/katulong.rb
+   # Uninstall old version
+   brew uninstall katulong
+
+   # Update tap and install with bottle
+   brew update
+   brew install dorky-robot/katulong/katulong
+
+   # Verify it used a bottle (should NOT compile anything)
    katulong --version
    katulong start
    katulong status
    brew services start katulong
    brew services list | grep katulong
    ```
+
+### Manual Bottle Building
+
+If you need to build bottles manually:
+
+```bash
+# Build bottle for current platform
+brew install --build-bottle dorky-robot/katulong/katulong
+brew bottle --json dorky-robot/katulong/katulong
+
+# This creates:
+# - katulong--0.1.0.{platform}.bottle.tar.gz
+# - katulong--0.1.0.{platform}.bottle.json
+
+# Upload the .tar.gz to GitHub Releases
+gh release upload v0.1.0 katulong--*.bottle.tar.gz
+
+# Merge the bottle metadata into formula
+brew bottle --merge --write katulong--*.bottle.json
+
+# Commit and push the updated formula
+git add Formula/katulong.rb
+git commit -m "Add bottle for macOS {platform}"
+git push
+```
 
 ### Setting Up the Tap
 
