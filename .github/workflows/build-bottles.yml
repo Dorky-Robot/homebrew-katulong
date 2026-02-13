@@ -27,12 +27,12 @@ jobs:
 
       - name: Build bottle
         run: |
-          # Tap this repository
-          brew tap --force dorky-robot/katulong "$(pwd)"
+          # Install dependencies first
+          brew install node
 
-          # Build bottle
-          brew install --build-bottle dorky-robot/katulong/katulong
-          brew bottle --json --no-rebuild dorky-robot/katulong/katulong
+          # Build bottle from local formula
+          brew install --build-bottle --formula ./Formula/katulong.rb
+          brew bottle --json --no-rebuild ./Formula/katulong.rb
 
       - name: Upload bottle
         uses: actions/upload-artifact@v4
@@ -66,11 +66,8 @@ jobs:
           # Flatten bottle directory structure
           find bottles -name "*.bottle.*" -exec mv {} . \;
 
-          # Tap this repository
-          brew tap --force dorky-robot/katulong "$(pwd)"
-
           # Merge bottles into formula
-          brew bottle --merge --write *.bottle.json
+          brew bottle --merge --write --no-commit Formula/katulong.rb *.bottle.json
 
           # Commit and push updated formula
           git config user.name "github-actions[bot]"
