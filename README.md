@@ -14,6 +14,47 @@ brew tap dorky-robot/katulong
 brew install katulong
 ```
 
+#### ⚠️ Known Issue: macOS 26.x Beta (Sequoia RC)
+
+If you're running **macOS 26.x beta** and get this error:
+
+```
+Error: Your Xcode (16.2) is too outdated.
+Please update to Xcode 26.0 (or delete it).
+```
+
+This is a **Homebrew bug** - Xcode 26.0 doesn't exist. Homebrew is confusing the macOS version with the Xcode requirement.
+
+**Workaround - Automated Install Script:**
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/dorky-robot/homebrew-katulong/master/install.sh | bash
+```
+
+Or **manual installation:**
+
+```bash
+# Clone the repository
+git clone https://github.com/dorky-robot/katulong.git
+cd katulong
+
+# Install dependencies
+npm install --production --omit=dev --ignore-scripts
+chmod +x node_modules/node-pty/prebuilds/*/spawn-helper 2>/dev/null || true
+
+# Create symlink
+mkdir -p ~/.local/bin
+ln -sf "$(pwd)/bin/katulong" ~/.local/bin/katulong
+
+# Add to PATH (add this to your ~/.zshrc or ~/.bashrc)
+export PATH="$HOME/.local/bin:$PATH"
+
+# Verify installation
+katulong --version
+```
+
+This issue will be resolved when Homebrew updates to support macOS 26.x beta.
+
 ### Usage
 
 ```bash
