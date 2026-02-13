@@ -76,8 +76,8 @@ jobs:
           # List bottles in current directory
           ls -la *.bottle.* || echo "No bottles found"
 
-          # Merge bottles into formula
-          brew bottle --merge --write --no-commit Formula/katulong.rb *.bottle.json
+          # Merge bottles into formula (formula path determined from JSON)
+          brew bottle --merge --write *.bottle.json
 
           # Commit and push updated formula
           git config user.name "github-actions[bot]"
