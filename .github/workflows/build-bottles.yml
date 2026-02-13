@@ -84,8 +84,8 @@ jobs:
           # This will automatically commit the changes
           brew bottle --merge --write *.bottle.json
 
-          # Push updated formula
-          git push || echo "Nothing to push"
+          # Push updated formula (set upstream since Actions checkout is detached)
+          git push --set-upstream origin master || echo "Failed to push"
 
       - name: Upload bottles to GitHub Releases
         env:

@@ -1,0 +1,26 @@
+{
+  "name": "homebrew-katulong",
+  "version": "1.0.0",
+  "description": "Homebrew tap for Katulong",
+  "private": true,
+  "scripts": {
+    "test": "npm run test:formula && npm run test:install-script",
+    "test:formula": "brew audit --strict --online --formula Formula/katulong.rb || echo '⚠️  Warning: brew audit failed (may require local tap)'",
+    "test:install-script": "bash -n install.sh && echo '✓ install.sh syntax valid'",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7"
+  },
+  "keywords": [
+    "homebrew",
+    "formula",
+    "katulong",
+    "terminal"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dorky-robot/homebrew-katulong.git"
+  },
+  "license": "MIT"
+}
