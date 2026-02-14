@@ -11,8 +11,10 @@ class Katulong < Formula
     # Install npm dependencies (skip prepare script to avoid husky dev dependency)
     system "npm", "install", "--production", "--omit=dev", "--ignore-scripts"
 
-    # Run postinstall manually (for node-pty)
-    system "chmod", "+x", "node_modules/node-pty/prebuilds/*/spawn-helper" rescue nil
+    # Fix node-pty spawn-helper permissions (--ignore-scripts skips postinstall)
+    Dir.glob("node_modules/node-pty/prebuilds/*/spawn-helper").each do |f|
+      File.chmod(0755, f)
+    end
 
     # Install everything to libexec
     libexec.install Dir["*"]
