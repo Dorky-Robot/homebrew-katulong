@@ -8,21 +8,11 @@ class Katulong < Formula
   depends_on "node"
 
   def install
-    # Install npm dependencies (skip prepare script to avoid husky dev dependency)
-    system "npm", "install", "--production", "--omit=dev", "--ignore-scripts"
-
-    # Fix node-pty spawn-helper permissions (--ignore-scripts skips postinstall)
-    Dir.glob("node_modules/node-pty/prebuilds/*/spawn-helper").each do |f|
-      File.chmod(0755, f)
-    end
+    # Install npm dependencies (production mode skips husky automatically)
+    system "npm", "install", "--production", "--omit=dev"
 
     # Install everything to libexec
     libexec.install Dir["*"]
-
-    # Rebuild native modules AFTER copying to libexec (node-datachannel for P2P WebRTC)
-    cd libexec do
-      system "npm", "rebuild", "node-datachannel"
-    end
 
     # Create wrapper script that sets DATA_DIR
     (bin/"katulong").write <<~EOS
