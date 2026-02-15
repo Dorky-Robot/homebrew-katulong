@@ -8,8 +8,18 @@ class Katulong < Formula
   depends_on "node"
 
   def install
-    # Install npm dependencies (production mode skips husky automatically)
-    system "npm", "install", "--production", "--omit=dev"
+    # Install npm dependencies (skip scripts to avoid husky prepare script)
+    system "npm", "install", "--production", "--omit=dev", "--ignore-scripts"
+
+    # Run postinstall for node-pty (fix spawn-helper permissions)
+    Dir.glob("node_modules/node-pty/prebuilds/*/spawn-helper").each do |f|
+      File.chmod(0755, f)
+    end
+
+    # Run postinstall for node-datachannel (build native module)
+    cd "node_modules/node-datachannel" do
+      system "npm", "run", "install"
+    end
 
     # Install everything to libexec
     libexec.install Dir["*"]
