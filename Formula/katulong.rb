@@ -1,25 +1,15 @@
 class Katulong < Formula
   desc "Self-hosted web terminal with remote shell access"
   homepage "https://github.com/dorky-robot/katulong"
-  url "https://github.com/dorky-robot/katulong/archive/refs/tags/v0.2.2.tar.gz"
-  sha256 "18ebbf65b4f14600729b593c73be7eeb4e648885aac79e8845d629ba5011060d"
+  url "https://github.com/dorky-robot/katulong/archive/refs/tags/v0.2.3.tar.gz"
+  sha256 "46f9e6e3337004f63328f8cc643bbf41da1ef074e33d961cd3859dbce7952c5e"
   license "MIT"
 
   depends_on "node"
 
   def install
-    # Install npm dependencies (skip scripts to avoid husky prepare script)
-    system "npm", "install", "--production", "--omit=dev", "--ignore-scripts"
-
-    # Run postinstall for node-pty (fix spawn-helper permissions)
-    Dir.glob("node_modules/node-pty/prebuilds/*/spawn-helper").each do |f|
-      File.chmod(0755, f)
-    end
-
-    # Run postinstall for node-datachannel (build native module)
-    cd "node_modules/node-datachannel" do
-      system "npm", "run", "install"
-    end
+    # Install npm dependencies (prepare script now handles missing husky gracefully)
+    system "npm", "install", "--production", "--omit=dev"
 
     # Install everything to libexec
     libexec.install Dir["*"]
