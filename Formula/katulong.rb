@@ -1,8 +1,8 @@
 class Katulong < Formula
   desc "Self-hosted web terminal with remote shell access"
   homepage "https://github.com/dorky-robot/katulong"
-  url "https://github.com/dorky-robot/katulong/archive/refs/tags/v0.5.6.tar.gz"
-  sha256 "2ea526b830b4c27b4bb1a147a694d9acdbae84edad2827b13c398c4e57d2ae19"
+  url "https://github.com/dorky-robot/katulong/archive/refs/tags/v0.6.0.tar.gz"
+  sha256 "5a94f3bbb8fd93486191d37d4b896c13b5a40db8b9a28f2950d3e30c99f97d37"
   license "MIT"
 
   depends_on "node"
@@ -17,15 +17,15 @@ class Katulong < Formula
     # Create wrapper script that sets DATA_DIR
     (bin/"katulong").write <<~EOS
       #!/bin/bash
-      export KATULONG_DATA_DIR="${HOME}/.config/katulong"
+      export KATULONG_DATA_DIR="${HOME}/.katulong"
       exec "#{Formula["node"].opt_bin}/node" "#{libexec}/bin/katulong" "$@"
     EOS
   end
 
   def post_install
-    # Create config directory
-    config_dir = Pathname.new(Dir.home) / ".config" / "katulong"
-    config_dir.mkpath
+    # Create data directory (matches wrapper's KATULONG_DATA_DIR)
+    data_dir = Pathname.new(Dir.home) / ".katulong"
+    data_dir.mkpath
   end
 
   service do
@@ -34,7 +34,7 @@ class Katulong < Formula
     working_dir var
     log_path var/"log/katulong.log"
     error_log_path var/"log/katulong.log"
-    environment_variables KATULONG_DATA_DIR: "#{Dir.home}/.config/katulong"
+    environment_variables KATULONG_DATA_DIR: "#{Dir.home}/.katulong"
   end
 
   test do
