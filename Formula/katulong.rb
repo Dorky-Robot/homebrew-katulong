@@ -1,8 +1,8 @@
 class Katulong < Formula
   desc "Self-hosted web terminal with tmux sessions and WebAuthn security"
   homepage "https://github.com/Dorky-Robot/katulong"
-  url "https://github.com/Dorky-Robot/katulong/archive/refs/tags/v0.26.11.tar.gz"
-  sha256 "e184017b66466eab348ea4a4ad80e5bb0d734a73ec08b9d5b7360e1890c40848"
+  url "https://github.com/Dorky-Robot/katulong/archive/refs/tags/v0.27.0.tar.gz"
+  sha256 "8a765c29c87f60f6893b87d54a054b840c9f6f0e6d75a9f025d6b31c33f0d715"
   license "MIT"
 
   depends_on "node"
@@ -20,20 +20,30 @@ class Katulong < Formula
     data_dir = Pathname.new(Dir.home) / ".katulong"
     data_dir.mkpath
 
-    # Stop the old server so it doesn't serve 500s from deleted Cellar files.
-    # During `brew upgrade`, the old process still references the old Cellar path.
-    # Cleanup deletes those files, causing readFileSync failures → 500 errors.
-    # This runs in post_install (not install) because Homebrew's sandbox blocks
-    # process signals during install on macOS.
-    pid_file = data_dir / "server.pid"
-    if pid_file.exist?
-      old_pid = pid_file.read.strip.to_i
-      if old_pid > 0
-        begin
-          Process.kill("TERM", old_pid)
-          sleep 3
-        rescue Errno::ESRCH, Errno::EPERM
-          # Process already exited or PID reused by another user's process
+    plist_path = Pathname.new(Dir.home) / "Library/LaunchAgents/com.dorkyrobot.katulong.plist"
+
+    if plist_path.exist?
+      # LaunchAgent is installed — let launchctl handle the lifecycle.
+      # Unload (kills old process) then reload (starts new version).
+      system "launchctl", "unload", plist_path.to_s
+      system "launchctl", "load", "-w", plist_path.to_s
+    else
+      # No LaunchAgent — stop the old server manually so it doesn't serve
+      # 500s from deleted Cellar files. During `brew upgrade`, the old
+      # process still references the old Cellar path. Cleanup deletes those
+      # files, causing readFileSync failures → 500 errors.
+      # This runs in post_install (not install) because Homebrew's sandbox
+      # blocks process signals during install on macOS.
+      pid_file = data_dir / "server.pid"
+      if pid_file.exist?
+        old_pid = pid_file.read.strip.to_i
+        if old_pid > 0
+          begin
+            Process.kill("TERM", old_pid)
+            sleep 3
+          rescue Errno::ESRCH, Errno::EPERM
+            # Process already exited or PID reused by another user's process
+          end
         end
       end
     end
@@ -41,11 +51,13 @@ class Katulong < Formula
 
   def caveats
     <<~EOS
-      To restart katulong after upgrading:
+      To auto-start katulong on login:
+        katulong service install
+
+      To restart after upgrading (if not using the service):
         katulong start
 
-      Or use brew services for automatic lifecycle management:
-        brew services start katulong
+      If the service is installed, brew upgrade restarts it automatically.
     EOS
   end
 
