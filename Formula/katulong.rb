@@ -1,8 +1,8 @@
 class Katulong < Formula
   desc "Self-hosted web terminal with tmux sessions and WebAuthn security"
   homepage "https://github.com/Dorky-Robot/katulong"
-  url "https://github.com/Dorky-Robot/katulong/archive/refs/tags/v0.42.0.tar.gz"
-  sha256 "9034865eaaaab7cdb9a0b45b21b22bdc4c062619791cc817eeeccbf308106bb6"
+  url "https://github.com/Dorky-Robot/katulong/archive/refs/tags/v0.44.42.tar.gz"
+  sha256 "7cb2cc29b911427548036bd843af2ba9919becfa931d9fecb1b0e1892bb902dd"
   license "MIT"
 
   depends_on "node"
@@ -16,16 +16,21 @@ class Katulong < Formula
   end
 
   def post_install
-    # After brew upgrade the old server process may still be running (holding
-    # the port) even though its Cellar path was removed.  Stop it first, then
-    # start the new version.  The update command also handles this, so
-    # post_install is a belt-and-suspenders safety net.
+    # When `katulong update` is driving the upgrade, it creates a sentinel
+    # file and handles the smoke-test-and-swap restart itself.  Skip here
+    # so we don't race with that process or hit EPERM on the plist.
+    sentinel = Pathname.new(Dir.home) / ".katulong" / ".update-in-progress"
+    if sentinel.exist?
+      ohai "Restart managed by `katulong update` — skipping post_install restart"
+      return
+    end
+
+    # Standalone `brew upgrade` (not via `katulong update`): restart normally.
     katulong = bin/"katulong"
     if (Pathname.new(Dir.home) / "Library/LaunchAgents/com.dorkyrobot.katulong.plist").exist?
       system katulong, "service", "restart"
     else
-      system katulong, "stop"
-      system katulong, "start"
+      system katulong, "restart"
     end
   end
 
